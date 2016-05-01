@@ -2,31 +2,6 @@ require 'pp'
 
 MAP = ARGF.readlines.map { |e| e.chomp.split(//).map(&:to_sym) }
 pp MAP
-# MAP =
-# [
-#   [:h, :F, :D, :-, :-, :F, :D, :I, :G, :e],
-#   [:b, :-, :E, :-, :E, :F, :D, :C, :A, :-],
-#   [:-, :h, :f, :d, :-, :-, :e, :-, :-, :e],
-#   [:h, :b, :-, :-, :H, :-, :-, :E, :e, :-],
-#   [:b, :f, :d, :e, :B, :E, :F, :D, :-, :-],
-#   [:h, :I, :G, :-, :-, :-, :f, :d, :h, :-],
-#   [:b, :C, :A, :h, :-, :-, :h, :-, :b, :h],
-#   [:e, :H, :-, :b, :-, :H, :b, :f, :d, :b],
-#   [:-, :B, :-, :H, :-, :B, :-, :H, :I, :G],
-#   [:F, :D, :-, :B, :-, :-, :-, :B, :C, :A],
-# ]
-# [
-#   [:e, :h, :-, :e, :H, :F, :D, :-, :e, :-],
-#   [:-, :b, :I, :G, :B, :e, :-, :E, :f, :d],
-#   [:e, :-, :C, :A, :-, :-, :f, :d, :H, :-],
-#   [:-, :E, :-, :H, :-, :E, :E, :-, :B, :e],
-#   [:E, :-, :-, :B, :E, :-, :-, :h, :-, :-],
-#   [:h, :e, :-, :-, :h, :e, :-, :b, :E, :e],
-#   [:b, :E, :e, :H, :b, :E, :f, :d, :-, :-],
-#   [:E, :-, :-, :B, :f, :d, :E, :-, :H, :e],
-#   [:i, :g, :-, :e, :-, :h, :-, :-, :B, :-],
-#   [:c, :a, :e, :-, :-, :b, :F, :D, :F, :D]
-# ]
 
 MOVES = [[1, 0], [0, 1], [-1, 0], [0, -1]]
 MOVE = {
@@ -79,8 +54,7 @@ def extend(moves)
     r << mv
     case (MAP[mv[1]][mv[0]].to_s.downcase)
     when 'a'
-      r << [mv[0] - 1, mv[1]] << [mv[0], mv[1] - 1] <<
-           [mv[0] - 1, mv[1] - 1]
+      r << [mv[0] - 1, mv[1]] << [mv[0], mv[1] - 1] << [mv[0] - 1, mv[1] - 1]
     when 'b'
       r << [mv[0], mv[1] - 1]
     when 'c'
@@ -118,7 +92,6 @@ def search(blanks, idx)
     a = get_moves(*bl, {})
     a.each do |mv|
       xb, yb = get_synmet(bl[0], bl[1], mv[0] - bl[0], mv[1] - bl[1], MAP[mv[1]][mv[0]])
-      # p [bl, mv, [xb, yb]]
       next unless (0...MAP.size).include?(xb) && (0...MAP.size).include?(yb)
       next if @show[yb][xb] != "-"
       next unless extend(get_moves(xb, yb, {})).include?(mv)
