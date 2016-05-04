@@ -1,7 +1,43 @@
 require 'pp'
 
-MAP = ARGF.readlines.map { |e| e.chomp.split(//).map(&:to_sym) }
-pp MAP
+reads = ARGF.readlines.map { |e| e.chomp.split(//) }
+@initial_map = Array.new(reads.size).map { Array.new(reads[0].size, nil) }
+reads.each_with_index do |_v, y|
+  _v.each_with_index do |v, x|
+    next if @initial_map[y][x]
+    case (v)
+    when '-' then @initial_map[y][x] = :-
+    when 'a' then @initial_map[y][x] = :e
+    when 'A' then @initial_map[y][x] = :E
+    when 'c'
+      @initial_map[y][x] = :i
+      @initial_map[y][x+1] = :g
+      @initial_map[y+1][x] = :c
+      @initial_map[y+1][x+1] = :a
+    when 'C'
+      @initial_map[y][x] = :I
+      @initial_map[y][x+1] = :G
+      @initial_map[y+1][x] = :C
+      @initial_map[y+1][x+1] = :A
+    when 'v'
+      @initial_map[y][x] = :h
+      @initial_map[y+1][x] = :b
+    when 'V'
+      @initial_map[y][x] = :H
+      @initial_map[y+1][x] = :B
+    when 'h'
+      @initial_map[y][x] = :f
+      @initial_map[y][x+1] = :d
+    when 'H'
+      @initial_map[y][x] = :F
+      @initial_map[y][x+1] = :D
+    end
+  end
+end
+pp @initial_map
+# @initial_map = ARGF.readlines.map { |e| e.chomp.split(//).map(&:to_sym) }
+Y = @initial_map.size
+X = @initial_map[0].size
 
 MOVES = [[1, 0], [0, 1], [-1, 0], [0, -1]]
 MOVE = {
@@ -15,16 +51,18 @@ def get_synmet(x, y, dx, dy, val)
   [x + (dx * 2) + diff[0], y + (dy * 2) + diff[1]]
 end
 
-def get_moves(x, y, memo)
+@moves = {}
+def get_moves(x, y, memo, first = true)
+  return @moves[[x, y]] if @moves.key?([x, y]) && first
   r = []
   memo[[x, y]] = true
   MOVES.each do |mv|
     nx = x + mv[0]
     ny = y + mv[1]
-    next unless (0...MAP.size).include?(nx) && (0...MAP.size).include?(ny)
-    if MAP[ny][nx] == :-
+    next unless (0...X).include?(nx) && (0...Y).include?(ny)
+    if @initial_map[ny][nx] == :-
       unless memo.key?([nx, ny])
-        r += get_moves(nx, ny, memo)
+        r += get_moves(nx, ny, memo, false)
       end
     else
       unless memo.key?([nx, ny])
@@ -33,6 +71,7 @@ def get_moves(x, y, memo)
       end
     end
   end
+  @moves[[x, y]] = r if first
   r
 end
 
@@ -41,7 +80,7 @@ def b_w(value)
 end
 
 def start
-  MAP.each_with_index do |_m, y|
+  @initial_map.each_with_index do |_m, y|
     _m.each_with_index do |v, x|
       @show[y][x] = b_w(v) if v != :-
     end
@@ -52,7 +91,7 @@ def extend(moves)
   r = []
   moves.each do |mv|
     r << mv
-    case (MAP[mv[1]][mv[0]].to_s.downcase)
+    case (@initial_map[mv[1]][mv[0]].to_s.downcase)
     when 'a'
       r << [mv[0] - 1, mv[1]] << [mv[0], mv[1] - 1] << [mv[0] - 1, mv[1] - 1]
     when 'b'
@@ -91,8 +130,8 @@ def search(blanks, idx)
     # pp idx, @show
     a = get_moves(*bl, {})
     a.each do |mv|
-      xb, yb = get_synmet(bl[0], bl[1], mv[0] - bl[0], mv[1] - bl[1], MAP[mv[1]][mv[0]])
-      next unless (0...MAP.size).include?(xb) && (0...MAP.size).include?(yb)
+      xb, yb = get_synmet(bl[0], bl[1], mv[0] - bl[0], mv[1] - bl[1], @initial_map[mv[1]][mv[0]])
+      next unless (0...X).include?(xb) && (0...Y).include?(yb)
       next if @show[yb][xb] != "-"
       next unless extend(get_moves(xb, yb, {})).include?(mv)
       @show[yb][xb] = @show[bl[1]][bl[0]] = @show[mv[1]][mv[0]]
@@ -102,7 +141,7 @@ def search(blanks, idx)
   end
 end
 
-@show = Array.new(MAP.size).map{ Array.new(MAP[0].size, '-') }
+@show = Array.new(Y).map{ Array.new(X, '-') }
 
 start
 
